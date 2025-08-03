@@ -173,7 +173,6 @@ jobs:
           # https://modrinth.com/settings/pats
           modrinth-id: 4bMS6SlB
           modrinth-token: ${{ secrets.MODRINTH_TOKEN  }}
-  # mrp_NdsnfXWzfZusFweZ2VVqA2xOvq6FuyMM5MB8dlzpBtazpWCHJdfvxVtDmAlM
           # https://legacy.curseforge.com/account/api-tokens
 #          curseforge-id: 314159
 #          curseforge-token: ${{ secrets.CF_API_TOKEN }}
