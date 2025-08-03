@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "scheduledtickvisualizer",
+	"version": "${version}",
+	"name": "ScheduledTickVisualizer",
+	"description": "A scheduled tick visualizer mod.",
+	"authors": [
+		"Ryan100c"
+	],
+	"contact": {
+		"homepage": "https://github.com/hotpad100c/scheduledtickvisulizer",
+		"sources": "https://github.com/hotpad100c/scheduledtickvisulizer"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/scheduledtickvisualizer/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "mypals.ml.ScheduledTickVisualizer"
+		],"client": [
+			"mypals.ml.ScheduledTickVisualizerClient"
+		],
+		"modmenu": [
+			"mypals.ml.config.ScheduledTickVisualizerModMenuIntegration"
+		]
+	},
+	"mixins": [
+		"scheduledtickvisualizer.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.11",
+		"minecraft": "${minecraft_dependency}",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"accessWidener": "scheduledtickvisualizer.accesswidener",
+	"suggests": {
+		"another-mod": "*"
+	}
+}
