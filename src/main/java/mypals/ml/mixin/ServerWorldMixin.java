@@ -104,12 +104,12 @@ public abstract class ServerWorldMixin extends World implements StructureWorldAc
             long time = this.getTime();
 
             // Logging
-            if (ScheduledTickVisualizer.logManager != null && ScheduledTickVisualizer.logManager.ticks > 0) {
+            /*if (ScheduledTickVisualizer.logManager != null && ScheduledTickVisualizer.logManager.ticks > 0) {
                 ScheduledTickVisualizerLogger.writeLogFile(ScheduledTickVisualizer.logManager.fileName,
                         "====================================");
                 ScheduledTickVisualizerLogger.writeLogFile(ScheduledTickVisualizer.logManager.fileName,
                         "|ServerWorld:Started a tick, current tick is: tick" + time);
-            }
+            }*/
 
             Map<Object, String> typeNameCache = new HashMap<>();
 
