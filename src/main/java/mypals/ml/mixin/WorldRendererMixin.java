@@ -29,23 +29,28 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//#if MC >= 12102
+//$$ import org.joml.Matrix4f;
+//#endif
+
 //#if MC >= 12100
 //$$ import net.minecraft.client.render.RenderTickCounter;
 //#endif
 
 @Mixin(WorldRenderer.class)
-public abstract class WorldRendererMixin
-{
+public abstract class WorldRendererMixin {
 	@Inject(
-			//#if MC >= 12103
-			//$$ method = "method_62212",
-			//#else
 			method = "render",
-			//#endif
 			at = @At(
 					value = "INVOKE",
-					//#if MC >= 12103
+					//#if MC >= 12111
 					//$$ target = "Lnet/minecraft/client/render/debug/DebugRenderer;renderLate(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;DDD)V"
+					//#elseif MC >= 12110
+					//$$ target = "Lnet/minecraft/client/render/WorldRenderer;renderLateDebug(Lnet/minecraft/client/render/FrameGraphBuilder;Lnet/minecraft/util/math/Vec3d;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lnet/minecraft/client/render/Frustum;)V"
+					//#elseif MC >= 12106
+					//$$ target = "Lnet/minecraft/client/render/WorldRenderer;renderLateDebug(Lnet/minecraft/client/render/FrameGraphBuilder;Lnet/minecraft/util/math/Vec3d;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V"
+					//#elseif MC >= 12103
+					//$$ target = "Lnet/minecraft/client/render/WorldRenderer;renderLateDebug(Lnet/minecraft/client/render/FrameGraphBuilder;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/client/render/Fog;)V"
 					//#else
 					target = "Lnet/minecraft/client/render/WorldRenderer;renderChunkDebugInfo(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;Lnet/minecraft/client/render/Camera;)V",
 					ordinal = 0
@@ -53,39 +58,46 @@ public abstract class WorldRendererMixin
 			)
 	)
 	private void render(
-			CallbackInfo ci,
-
-					//#if MC < 12005
-					//$$ @Local(argsOnly = true)MatrixStack matrixStack,
-					//#elseif MC < 12103
-			 		@Local MatrixStack matrixStack,
-					//#else
-					//$$ @Local MatrixStack stack
-					//#endif
-
-			//#if MC >= 12103
-			//$$
-			//#elseif MC > 12100
-			@Local(argsOnly = true)RenderTickCounter tickCounter
+			CallbackInfo ci
+			/* --- Capture Matrix Data --- */
+			//#if MC >= 12110
+			//$$ // For MC 1.21.10+, we don't capture the Matrix4f as it doesn't contain the correct transformation
+			//#elseif MC >= 12102
+			//$$ , @Local(argsOnly = true, ordinal = 0) Matrix4f capturedMatrix
 			//#else
-			//$$@Local(argsOnly = true) float tickDelta
+			, @Local MatrixStack capturedStack
 			//#endif
-	)
-	{
-		ScheduledTickVisualizerInfoRender.render(
-				//#if MC >= 12103
-				//$$ stack,
-				//#else
-				matrixStack,
-				//#endif
+			/* --- Capture Timing Data --- */
+			//#if MC >= 12110
+			//$$ // For MC 1.21.10+, we don't capture the RenderTickCounter as we use a fixed delta
+			//#elseif MC >= 12100
+			//$$ , @Local(argsOnly = true) RenderTickCounter capturedCounter
+			//#else
+			, @Local(argsOnly = true) float capturedDelta
+			//#endif
+	) {
+		/* --- Standardize MatrixStack --- */
+		//#if MC >= 12110
+		//$$ // For MC 1.21.10+, use a fresh MatrixStack - the StringRenderer handles camera positioning
+		//$$ MatrixStack finalStack = new MatrixStack();
+		//#elseif MC >= 12102
+		//$$ MatrixStack finalStack = new MatrixStack();
+		//$$ finalStack.multiplyPositionMatrix(capturedMatrix);
+		//#else
+		MatrixStack finalStack = capturedStack;
+		//#endif
 
-				//#if MC >= 12103
-				//$$ 1f
-				//#elseif MC >= 12100
-				tickCounter.getTickDelta(false)
-				//#else
-				//$$ tickDelta
-				//#endif
-		);
+		/* --- Standardize Delta --- */
+		//#if MC >= 12110
+		//$$ // For MC 1.21.10+, use a fixed delta of 1.0f as interpolation is handled elsewhere
+		//$$ float finalDelta = 1.0f;
+		//#elseif MC >= 12100
+		//$$ float finalDelta = capturedCounter.getTickDelta(false);
+		//#else
+		float finalDelta = capturedDelta;
+		//#endif
+
+		// Call the mod's rendering logic using the standardized variables
+		ScheduledTickVisualizerInfoRender.render(finalStack, finalDelta);
 	}
 }
