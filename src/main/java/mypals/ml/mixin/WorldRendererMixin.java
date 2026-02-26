@@ -40,13 +40,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
 	@Inject(
+			//#if MC >= 12111
+			//$$ method = "render",
+			//#elseif MC >= 12110
+			//$$ method = "method_72915",
+			//#else
 			method = "render",
+			//#endif
 			at = @At(
 					value = "INVOKE",
 					//#if MC >= 12111
 					//$$ target = "Lnet/minecraft/client/render/debug/DebugRenderer;renderLate(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;DDD)V"
 					//#elseif MC >= 12110
-					//$$ target = "Lnet/minecraft/client/render/WorldRenderer;renderLateDebug(Lnet/minecraft/client/render/FrameGraphBuilder;Lnet/minecraft/util/math/Vec3d;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lnet/minecraft/client/render/Frustum;)V"
+					//$$ target = "Lnet/minecraft/client/render/debug/DebugRenderer;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/Frustum;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;DDDZ)V"
 					//#elseif MC >= 12106
 					//$$ target = "Lnet/minecraft/client/render/WorldRenderer;renderLateDebug(Lnet/minecraft/client/render/FrameGraphBuilder;Lnet/minecraft/util/math/Vec3d;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V"
 					//#elseif MC >= 12103
@@ -61,7 +67,7 @@ public abstract class WorldRendererMixin {
 			CallbackInfo ci
 			/* --- Capture Matrix Data --- */
 			//#if MC >= 12110
-			//$$ // For MC 1.21.10+, we don't capture the Matrix4f as it doesn't contain the correct transformation
+			//$$ , @Local MatrixStack capturedStack
 			//#elseif MC >= 12102
 			//$$ , @Local(argsOnly = true, ordinal = 0) Matrix4f capturedMatrix
 			//#else
@@ -69,7 +75,7 @@ public abstract class WorldRendererMixin {
 			//#endif
 			/* --- Capture Timing Data --- */
 			//#if MC >= 12110
-			//$$ // For MC 1.21.10+, we don't capture the RenderTickCounter as we use a fixed delta
+			//$$ // For MC 1.21.10+, use a fixed delta of 1.0f
 			//#elseif MC >= 12100
 			//$$ , @Local(argsOnly = true) RenderTickCounter capturedCounter
 			//#else
@@ -78,8 +84,8 @@ public abstract class WorldRendererMixin {
 	) {
 		/* --- Standardize MatrixStack --- */
 		//#if MC >= 12110
-		//$$ // For MC 1.21.10+, use a fresh MatrixStack - the StringRenderer handles camera positioning
-		//$$ MatrixStack finalStack = new MatrixStack();
+		//$$ // For MC 1.21.10+, capture the MatrixStack from the frame pass lambda
+		//$$ MatrixStack finalStack = capturedStack;
 		//#elseif MC >= 12102
 		//$$ MatrixStack finalStack = new MatrixStack();
 		//$$ finalStack.multiplyPositionMatrix(capturedMatrix);
@@ -89,7 +95,6 @@ public abstract class WorldRendererMixin {
 
 		/* --- Standardize Delta --- */
 		//#if MC >= 12110
-		//$$ // For MC 1.21.10+, use a fixed delta of 1.0f as interpolation is handled elsewhere
 		//$$ float finalDelta = 1.0f;
 		//#elseif MC >= 12100
 		//$$ float finalDelta = capturedCounter.getTickDelta(false);
