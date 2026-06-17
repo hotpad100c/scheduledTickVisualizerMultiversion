@@ -32,6 +32,9 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+//#if MC >= 12109
+//$$ import net.minecraft.util.Identifier;
+//#endif
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWScrollCallback;
 
@@ -51,6 +54,11 @@ public class ScheduledTickVisualizerClient implements ClientModInitializer {
 	private static boolean viewOrderKeyPressed = false;
 	private static final Comparator<SchedulTickObject> TICK_COMPARATOR =
 			Comparator.comparingLong(t -> t.getTickOrder());
+	//#if MC < 12109
+	private static final String KEY_CATEGORY = "category.scheduledTickVisualizer.keys";
+	//#else
+	//$$ private static final KeyBinding.Category KEY_CATEGORY = KeyBinding.Category.create(Identifier.of("scheduledtickvisualizer", "keys"));
+	//#endif
 
 
 	@Override
@@ -61,13 +69,13 @@ public class ScheduledTickVisualizerClient implements ClientModInitializer {
 				"key.scheduledTickVisualizer.up",
 				InputUtil.Type.KEYSYM,
 				GLFW.GLFW_KEY_UP,
-				"category.scheduledTickVisualizer.keys"
+				KEY_CATEGORY
 		));
 		viewOrderKeyBindingDown = KeyBindingHelper.registerKeyBinding(new KeyBinding(
 				"key.scheduledTickVisualizer.down",
 				InputUtil.Type.KEYSYM,
 				GLFW.GLFW_KEY_DOWN,
-				"category.scheduledTickVisualizer.keys"
+				KEY_CATEGORY
 		));
 		ClientCommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess) -> {
 			ScheduledTickVisualizerCommandRegister.register(commandDispatcher);

@@ -20,7 +20,6 @@
 
 package mypals.ml;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -82,9 +81,6 @@ public class StringRenderer {
             RenderSystem.disableDepthTest();
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            //#else
-            //$$ GlStateManager._disableDepthTest();
-            //$$ GlStateManager._enableBlend();
             //#endif
 
             float totalHeight = 0.0F;
@@ -107,99 +103,12 @@ public class StringRenderer {
             }
             //#if MC < 12105
             RenderSystem.enableDepthTest();
-            //#else
-            //$$ GlStateManager._enableDepthTest;
-            //$$ GlStateManager._disableBlend();
             //#endif
             matrixStack.pop();
         }
     }
     public static void drawCube(MatrixStack matrices, BlockPos pos, float size, float tickDelta, Color color, float alpha) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        Camera camera = client.gameRenderer.getCamera();
-
-        if (camera.isReady() && client.player != null) {
-            matrices.push();
-
-            float x = (float) (pos.getX() - MathHelper.lerp(tickDelta, lastTickPosX, camera.getPos().getX()));
-            float y = (float) (pos.getY() - MathHelper.lerp(tickDelta, lastTickPosY, camera.getPos().getY()));
-            float z = (float) (pos.getZ() - MathHelper.lerp(tickDelta, lastTickPosZ, camera.getPos().getZ()));
-            lastTickPosX = camera.getPos().getX();
-            lastTickPosY = camera.getPos().getY();
-            lastTickPosZ = camera.getPos().getZ();
-
-            matrices.translate(x, y, z);
-            Matrix4f modelViewMatrix = matrices.peek().getPositionMatrix();
-
-
-            //#if MC < 12105
-            RenderSystem.disableDepthTest();
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            //#else
-            //$$ GlStateManager._disableDepthTest();
-            //$$ GlStateManager._enableBlend();
-            //#endif
-
-
-
-            //#if MC <= 12100
-            //$$ BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-            //$$ bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-            //#else
-            BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-            //#endif
-            float minOffset = -0.001F - size;
-            float maxOffset = 1.001F + size;
-
-            float red = ((color.getRGB() >> 16) & 0xFF) / 255.0f;
-            float green = ((color.getRGB() >> 8) & 0xFF) / 255.0f;
-            float blue = (color.getRGB() & 0xFF) / 255.0f;
-
-            vertex(bufferBuilder, modelViewMatrix, minOffset, maxOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, maxOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, maxOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, minOffset, maxOffset, maxOffset, red, green, blue, alpha);
-
-            vertex(bufferBuilder, modelViewMatrix, minOffset, minOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, minOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, minOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, minOffset, minOffset, minOffset, red, green, blue, alpha);
-
-            vertex(bufferBuilder, modelViewMatrix, minOffset, maxOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, minOffset, maxOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, minOffset, minOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, minOffset, minOffset, minOffset, red, green, blue, alpha);
-
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, minOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, minOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, maxOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, maxOffset, minOffset, red, green, blue, alpha);
-
-            vertex(bufferBuilder, modelViewMatrix, minOffset, minOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, minOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, maxOffset, minOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, minOffset, maxOffset, minOffset, red, green, blue, alpha);
-
-            vertex(bufferBuilder, modelViewMatrix, minOffset, maxOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, maxOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, maxOffset, minOffset, maxOffset, red, green, blue, alpha);
-            vertex(bufferBuilder, modelViewMatrix, minOffset, minOffset, maxOffset, red, green, blue, alpha);
-
-
-            BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
-
-
-            //#if MC < 12105
-            RenderSystem.enableDepthTest();
-            RenderSystem.disableBlend();
-            //#else
-            //$$ GlStateManager._enableDepthTest();
-            //$$ GlStateManager._disableBlend();
-            //#endif
-
-            matrices.pop();
-        }
+        drawCube2(matrices, pos, size, tickDelta, color, alpha);
     }
 
     public static void drawCube2(MatrixStack matrices, BlockPos pos, float size, float tickDelta, Color color,float alpha) {
@@ -218,8 +127,6 @@ public class StringRenderer {
             Matrix4f modelViewMatrix = matrices.peek().getPositionMatrix();
             //#if MC < 12105
             RenderSystem.disableDepthTest();
-            //#else
-            //$$ GlStateManager._disableDepthTest();
             //#endif
 
             //#if MC <= 12100
@@ -272,8 +179,6 @@ public class StringRenderer {
 
             //#if MC < 12105
             RenderSystem.enableDepthTest();
-            //#else
-            //$$ GlStateManager._enableDepthTest();
             //#endif
         }
     }

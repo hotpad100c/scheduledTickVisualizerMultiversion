@@ -29,22 +29,33 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//#if MC >= 12102
+//$$ import org.joml.Matrix4f;
+//#endif
+
 //#if MC >= 12100
 //$$ import net.minecraft.client.render.RenderTickCounter;
 //#endif
 
 @Mixin(WorldRenderer.class)
-public abstract class WorldRendererMixin
-{
+public abstract class WorldRendererMixin {
 	@Inject(
-			//#if MC >= 12103
+			//#if MC >= 12111
+			//$$ method = "render",
+			//#elseif MC >= 12109
+			//$$ method = "method_72915",
+			//#elseif MC >= 12103
 			//$$ method = "method_62212",
 			//#else
 			method = "render",
 			//#endif
 			at = @At(
 					value = "INVOKE",
-					//#if MC >= 12103
+					//#if MC >= 12111
+					//$$ target = "Lnet/minecraft/client/render/debug/DebugRenderer;renderLate(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;DDD)V"
+					//#elseif MC >= 12109
+					//$$ target = "Lnet/minecraft/client/render/debug/DebugRenderer;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/Frustum;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;DDDZ)V"
+					//#elseif MC >= 12103
 					//$$ target = "Lnet/minecraft/client/render/debug/DebugRenderer;renderLate(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;DDD)V"
 					//#else
 					target = "Lnet/minecraft/client/render/WorldRenderer;renderChunkDebugInfo(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;Lnet/minecraft/client/render/Camera;)V",
@@ -53,39 +64,45 @@ public abstract class WorldRendererMixin
 			)
 	)
 	private void render(
-			CallbackInfo ci,
-
-					//#if MC < 12005
-					//$$ @Local(argsOnly = true)MatrixStack matrixStack,
-					//#elseif MC < 12103
-			 		@Local MatrixStack matrixStack,
-					//#else
-					//$$ @Local MatrixStack stack
-					//#endif
-
+			CallbackInfo ci
+			/* --- Capture Matrix Data --- */
 			//#if MC >= 12103
-			//$$
-			//#elseif MC > 12100
-			@Local(argsOnly = true)RenderTickCounter tickCounter
+			//$$ , @Local MatrixStack capturedStack
+			//#elseif MC >= 12102
+			//$$ , @Local(argsOnly = true, ordinal = 0) Matrix4f capturedMatrix
 			//#else
-			//$$@Local(argsOnly = true) float tickDelta
+			, @Local MatrixStack capturedStack
 			//#endif
-	)
-	{
-		ScheduledTickVisualizerInfoRender.render(
-				//#if MC >= 12103
-				//$$ stack,
-				//#else
-				matrixStack,
-				//#endif
+			/* --- Capture Timing Data --- */
+			//#if MC >= 12103
+			//$$ // For MC 1.21.3+, use a fixed delta of 1.0f
+			//#elseif MC >= 12100
+			//$$ , @Local(argsOnly = true) RenderTickCounter capturedCounter
+			//#else
+			, @Local(argsOnly = true) float capturedDelta
+			//#endif
+	) {
+		/* --- Standardize MatrixStack --- */
+		//#if MC >= 12103
+		//$$ // For MC 1.21.3+, capture the MatrixStack from the frame pass lambda
+		//$$ MatrixStack finalStack = capturedStack;
+		//#elseif MC >= 12102
+		//$$ MatrixStack finalStack = new MatrixStack();
+		//$$ finalStack.multiplyPositionMatrix(capturedMatrix);
+		//#else
+		MatrixStack finalStack = capturedStack;
+		//#endif
 
-				//#if MC >= 12103
-				//$$ 1f
-				//#elseif MC >= 12100
-				tickCounter.getTickDelta(false)
-				//#else
-				//$$ tickDelta
-				//#endif
-		);
+		/* --- Standardize Delta --- */
+		//#if MC >= 12103
+		//$$ float finalDelta = 1.0f;
+		//#elseif MC >= 12100
+		//$$ float finalDelta = capturedCounter.getTickDelta(false);
+		//#else
+		float finalDelta = capturedDelta;
+		//#endif
+
+		// Call the mod's rendering logic using the standardized variables
+		ScheduledTickVisualizerInfoRender.render(finalStack, finalDelta);
 	}
 }
