@@ -5,7 +5,8 @@
 	"name": "ScheduledTickVisualizer",
 	"description": "A scheduled tick visualizer mod.",
 	"authors": [
-		"Ryan100c"
+		"Ryan100c",
+		"RayZh-hs"
 	],
 	"contact": {
 		"homepage": "https://github.com/hotpad100c/scheduledtickvisulizer",
